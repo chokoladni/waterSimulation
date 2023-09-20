@@ -1,0 +1,76 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> waveEffectsTexture;
+RWTexture2D<float4> boundariesTexture;
+
+bool isPartOfSilhouette(float x, float y) {
+	return waveEffectsTexture[float2(x,y)].r > 10e-5;
+}
+
+float2 determineDirectionForCoordinates(float x, float y) {
+	float2 direction = float2(0, 0);
+
+	// determining outer boundaries, so if it's inside, it's not on boundary
+	if (isPartOfSilhouette(x, y)) {
+		return direction;
+	}
+	if (isPartOfSilhouette(x + 1, y)) {
+		direction.x -= 1;
+	}
+	if (isPartOfSilhouette(x - 1, y)) {
+		direction.x += 1;
+	
+	}
+	if (isPartOfSilhouette(x, y + 1)) {
+		direction.y -= 1;
+	}
+	if (isPartOfSilhouette(x, y - 1)) {
+		direction.y += 1;
+	}
+
+	if (isPartOfSilhouette(x + 1, y + 1)) {
+		direction.x -= 1;
+		direction.y -= 1;
+	}
+	if (isPartOfSilhouette(x - 1, y + 1)) {
+		direction.x += 1;
+		direction.y -= 1;
+	}
+	if (isPartOfSilhouette(x + 1, y - 1)) {
+		direction.x -= 1;
+		direction.y += 1;
+	}
+	if (isPartOfSilhouette(x - 1, y - 1)) {
+		direction.x += 1;
+		direction.y += 1;
+	}
+
+	
+	if (length(direction) < 10e-4) {
+		return float2(0, 0);
+	}
+	else {
+		return normalize(direction);
+	}
+}
+
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	//TODO: flip the direction if the normal is positive (actually greater than 0.5)
+	float2 direction = determineDirectionForCoordinates(id.x, id.y);
+
+	// only indirect wave effect is copied because it needs to be distributed
+	float indirectWaveEffect = waveEffectsTexture[id.xy].a;
+	
+	if (length(direction) > 10e-5) {
+		boundariesTexture[id.xy] = float4(direction, 1, indirectWaveEffect);
+	}
+	else {
+		boundariesTexture[id.xy] = float4(0, 0, 0, indirectWaveEffect);
+	}
+}

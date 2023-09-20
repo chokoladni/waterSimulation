@@ -1,0 +1,32 @@
+﻿#pragma kernel CSMain
+
+RWTexture2D<float4> input;
+RWTexture2D<float4> output;
+
+[numthreads(1,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	uint2 coords = id.xy * 2;
+	float4 c1 = input[uint2(coords.x, coords.y)];
+	float4 c2 = input[uint2(coords.x + 1, coords.y)];
+	float4 c3 = input[uint2(coords.x, coords.y + 1)];
+	float4 c4 = input[uint2(coords.x + 1, coords.y + 1)];
+
+	float2 direction = c1.rg + c2.rg + c3.rg + c4.rg;
+	float waveEffect = c1.a + c2.a + c3.a + c4.a;
+	float boundaryCount = 0;
+	if (c1.b > 0.5) {
+		boundaryCount++;
+	}
+	if (c2.b > 0.5) {
+		boundaryCount++;
+	}
+	if (c3.b > 0.5) {
+		boundaryCount++;
+	}
+	if (c4.b > 0.5) {
+		boundaryCount++;
+	}
+	//float boundaryCount = c1.b + c2.b + c3.b + c4.b;
+	output[id.xy] = float4(direction, boundaryCount, waveEffect);
+}

@@ -1,0 +1,17 @@
+﻿#pragma kernel CSMain
+
+RWTexture2D<float4> blueToCopy;
+RWTexture2D<float4> input;
+RWTexture2D<float4> output;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	float4 inputC = input[id.xy];
+	if (length(inputC.rg) > 10e-8) {
+		output[id.xy] = float4(normalize(inputC.rg), blueToCopy[id.xy].b, inputC.a);
+	}
+	else {
+		output[id.xy] = float4(inputC.rg, blueToCopy[id.xy].b, inputC.a);
+	}
+}

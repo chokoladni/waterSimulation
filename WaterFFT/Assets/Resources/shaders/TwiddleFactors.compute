@@ -1,0 +1,67 @@
+﻿#pragma kernel CSMain
+#define M_PI 3.1415926535897932384626433832795
+
+RWTexture2D<float4> twiddleFactorsTex;
+
+int N;
+
+Buffer<int> bit_reversed;
+
+struct complex {
+	float real;
+	float im;
+};
+
+complex Complex(float real, float im) {
+	complex c;
+	c.real = real;
+	c.im = im;
+	return c;
+}
+
+[numthreads(1,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+	float2 x = float2(id.xy);
+	float k = fmod(x.y * (float(N) / pow(2, x.x + 1)), N);
+	complex twiddle = Complex(cos(2.0*M_PI*k / float(N)), sin(2.0*M_PI*k / float(N)));
+
+	int butterflyReach = int(pow(2, x.x));
+
+	int currentWing;
+	if (fmod(x.y, pow(2, x.x + 1)) < pow(2, x.x))
+		currentWing = 1;
+	else currentWing = 0;
+
+	if (x.x == 0) {
+		if (currentWing == 1) {
+			twiddleFactorsTex[x] = float4(
+				twiddle.real,
+				twiddle.im,
+				bit_reversed.Load(int(x.y)),
+				bit_reversed.Load(int(x.y + 1)));
+		}
+		else {
+			twiddleFactorsTex[x] = float4(
+				twiddle.real,
+				twiddle.im,
+				bit_reversed.Load(int(x.y - 1)),
+				bit_reversed.Load(int(x.y)));
+		}
+	}
+	else {
+		if (currentWing == 1) {
+			twiddleFactorsTex[x] = float4(
+				twiddle.real,
+				twiddle.im,
+				x.y,
+				x.y + butterflyReach);
+		}
+		else {
+			twiddleFactorsTex[x] = float4(
+				twiddle.real,
+				twiddle.im,
+				x.y - butterflyReach,
+				x.y);
+		}
+	}
+}

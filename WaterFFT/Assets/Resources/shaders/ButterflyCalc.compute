@@ -1,0 +1,114 @@
+﻿#pragma kernel CSMain
+
+Texture2D<float4> twiddleFactors;
+RWTexture2D<float4> pingpong0;
+RWTexture2D<float4> pingpong1;
+
+int stage;
+int pingpong;
+int direction;
+
+struct complex {
+	float real;
+	float im;
+};
+
+complex Complex(float real, float im) {
+	complex c;
+	c.real = real;
+	c.im = im;
+	return c;
+}
+
+complex cmul(complex c1, complex c2) {
+	complex result;
+	result.real = c1.real * c2.real - c1.im * c2.im;
+	result.im = c1.real * c2.im + c1.im * c2.real;
+	return result;
+}
+
+complex cadd(complex c1, complex c2) {
+	complex result;
+	result.real = c1.real + c2.real;
+	result.im = c1.im + c2.im;
+	return result;
+}
+
+void horizontalButterfly(uint3 id) {
+	complex H;
+	float2 x = id.xy;
+
+	if (pingpong == 0) {
+		float4 data = twiddleFactors[float2(stage, x.x)].rgba;
+		float2 pVec = pingpong0[float2(data.z, x.y)].rg;
+		float2 qVec = pingpong0[float2(data.w, x.y)].rg;
+		float2 wVec = data.xy;
+
+		complex p = Complex(pVec.x, pVec.y);
+		complex q = Complex(qVec.x, qVec.y);
+		complex w = Complex(wVec.x, wVec.y);
+
+		H = cadd(p, cmul(w, q));
+
+		pingpong1[id.xy] = float4(H.real, H.im, 0, 1);
+	}
+	else if (pingpong == 1) {
+		float4 data = twiddleFactors[float2(stage, x.x)].rgba;
+		float2 pVec = pingpong1[float2(data.z, x.y)].rg;
+		float2 qVec = pingpong1[float2(data.w, x.y)].rg;
+		float2 wVec = data.xy;
+
+		complex p = Complex(pVec.x, pVec.y);
+		complex q = Complex(qVec.x, qVec.y);
+		complex w = Complex(wVec.x, wVec.y);
+
+		H = cadd(p, cmul(w, q));
+
+		pingpong0[x] = float4(H.real, H.im, 0, 1);
+	}
+}
+
+void verticalButterfly(uint3 id) {
+	complex H;
+	float2 x = id.xy;
+
+	if (pingpong == 0) {
+		float4 data = twiddleFactors[float2(stage, x.y)].rgba;
+		float2 pVec = pingpong0[float2(x.x, data.z)].rg;
+		float2 qVec = pingpong0[float2(x.x, data.w)].rg;
+		float2 wVec = data.xy;
+
+		complex p = Complex(pVec.x, pVec.y);
+		complex q = Complex(qVec.x, qVec.y);
+		complex w = Complex(wVec.x, wVec.y);
+
+		H = cadd(p, cmul(w, q));
+
+		pingpong1[x] = float4(H.real, H.im, 0, 1);
+	}
+	else if (pingpong == 1) {
+		float4 data = twiddleFactors[float2(stage, x.y)].rgba;
+		float2 pVec = pingpong1[float2(x.x, data.z)].rg;
+		float2 qVec = pingpong1[float2(x.x, data.w)].rg;
+		float2 wVec = data.xy;
+
+		complex p = Complex(pVec.x, pVec.y);
+		complex q = Complex(qVec.x, qVec.y);
+		complex w = Complex(wVec.x, wVec.y);
+
+		H = cadd(p, cmul(w, q));
+
+		pingpong0[x] = float4(H.real, H.im, 0, 1);
+	}
+}
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	if (direction == 0) {
+		horizontalButterfly(id);
+	}
+	else if (direction == 1) {
+		verticalButterfly(id);
+	}
+}

@@ -1,0 +1,71 @@
+{
+    "name": "CameraInputActions",
+    "maps": [
+        {
+            "name": "Camera",
+            "id": "91e4324b-c6f9-43f7-821e-fecb41da2fab",
+            "actions": [
+                {
+                    "name": "rotate",
+                    "type": "PassThrough",
+                    "id": "6e1d312e-0912-448f-b219-d40ce7fc65dc",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "zoom",
+                    "type": "PassThrough",
+                    "id": "65a32a04-6ef0-4050-aa0c-c857147521da",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": ""
+                },
+                {
+                    "name": "disableMovement",
+                    "type": "Button",
+                    "id": "43c19565-818c-4e66-952f-824ff28429f2",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": ""
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "2f129b4f-27f7-416a-b176-98d6806a18a0",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "44c4895c-86d8-46bc-a5f6-cd8f4d99face",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "rotate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9742a523-5dd9-45f3-9499-95935dc4a8af",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "disableMovement",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

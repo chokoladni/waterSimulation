@@ -1,0 +1,87 @@
+﻿#pragma kernel CSMain
+#define M_PI 3.1415926535897932384626433832795
+//outputs
+RWTexture2D<float4> tilde_hkt_dy; //height displacement
+RWTexture2D<float4> tilde_hkt_dx; //x choppy displacement
+RWTexture2D<float4> tilde_hkt_dz; //z choppy displacement
+
+//inputs
+Texture2D h0k;
+Texture2D h0minusk;
+
+int N;
+int L;
+float time;
+
+struct complex {
+	float real;
+	float im;
+};
+
+inline complex Complex(float re, float imag) {
+	complex c;
+	c.real = re;
+	c.im = imag;
+	return c;
+}
+
+complex cmul(complex c0, complex c1) {
+	complex c;
+	c.real = c0.real * c1.real - c0.im * c1.im;
+	c.im = c0.real * c1.im + c0.im * c1.real;
+	return c;
+}
+
+complex cadd(complex c0, complex c1) {
+	complex c;
+	c.real = c0.real + c1.real;
+	c.im = c0.im + c1.im;
+	return c;
+}
+
+complex conj(complex c) {
+	complex c_conj;
+	c_conj.real = c.real;
+	c_conj.im = -c.im;
+	return c_conj;
+}
+
+[numthreads(16, 16, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID) {
+	float2 x = float2(id.xy) - float(N) / 2.0;
+	float2 k = float2(2.0 * M_PI * x.x / L, 2.0 * M_PI * x.y / L);
+
+	float magnitude = length(k);
+
+	if (magnitude < 0.00001) magnitude = 0.00001;
+
+	float w = sqrt(9.81 * magnitude);
+
+	complex tilde_h0k = Complex(h0k[id.xy].r, h0k[id.xy].g);
+
+	complex tilde_h0minuskconj = conj(Complex(h0minusk[id.xy].r, h0minusk[id.xy].g));
+
+
+	float cosinus = cos(w * time);
+	float sinus = sin(w * time);
+
+	// euler formula
+	complex exp_iwt = Complex(cosinus, sinus);
+	complex exp_iwt_inv = Complex(cosinus, -sinus);
+
+
+	// dy
+	complex h_k_t_dy = cadd(cmul(tilde_h0k, exp_iwt), cmul(tilde_h0minuskconj, exp_iwt_inv));
+
+	// dx
+	complex dx = Complex(0.0, -(float)k.x / magnitude);
+	complex h_k_t_dx = cmul(dx, h_k_t_dy);
+
+	// dz
+	complex dy = Complex(0.0, -(float)k.y / magnitude);
+	complex h_k_t_dz = cmul(dy, h_k_t_dy);
+
+	tilde_hkt_dy[id.xy] = float4(h_k_t_dy.real, h_k_t_dy.im, 0, 1);
+	tilde_hkt_dx[id.xy] = float4(h_k_t_dx.real, h_k_t_dx.im, 0, 1);
+	tilde_hkt_dz[id.xy] = float4(h_k_t_dz.real, h_k_t_dz.im, 0, 1);
+}

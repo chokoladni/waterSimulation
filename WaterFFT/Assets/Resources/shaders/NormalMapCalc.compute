@@ -1,0 +1,49 @@
+﻿#pragma kernel CSMain
+
+Texture2D<float4> heightMap;
+RWTexture2D<float4> normalMap;
+
+int N;
+float strength;
+float2 texSize;
+
+float2 offsetCoords(float2 texCoord, float2 offset) {
+	float2 result = texCoord + offset;
+	return fmod(fmod(result, texSize) + texSize, texSize);
+}
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	float2 x = id.xy;
+	float2 texCoord = x;
+
+	float texelSize = 1.0f;
+	//float texelSize = 2.0f;
+	texSize = float2(N, N);
+	// neighbour heights of current height H
+	//  n0 ---- n1 ---- n2
+	//	|		|		|
+	//	|		|		|
+	//	n3 ---- H  ---- n4
+	//	|		|		|
+	//	|		|		|
+	//  n5 ---- n6 ---- n7
+	
+	float n0 = heightMap[offsetCoords(texCoord, float2(-texelSize, texelSize))].g;
+	float n1 = heightMap[offsetCoords(texCoord, float2(0, texelSize))].g;
+	float n2 = heightMap[offsetCoords(texCoord, float2(texelSize, texelSize))].g;
+	float n3 = heightMap[offsetCoords(texCoord, float2(-texelSize, 0))].g;
+	float n4 = heightMap[offsetCoords(texCoord, float2(texelSize, 0))].g;
+	float n5 = heightMap[offsetCoords(texCoord, float2(-texelSize, -texelSize))].g;
+	float n6 = heightMap[offsetCoords(texCoord, float2(0, -texelSize))].g;
+	float n7 = heightMap[offsetCoords(texCoord, float2(texelSize, -texelSize))].g;
+
+	//Sobel operator
+	float3 normal;
+	normal.x = -(n0 + 2*n3 + n5 - n2 - 2*n4 - n7);
+	normal.y = (n0 + 2*n1 + n2 - n5 - 2 * n6 - n7);
+	normal.z = 1.0f / strength;
+	normal = normalize(normal);
+	normalMap[id.xy] = float4(normal, 1);
+}

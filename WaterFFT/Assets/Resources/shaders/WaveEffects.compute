@@ -1,0 +1,96 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+RWTexture2D<float4> waveEffectsTexture;
+StructuredBuffer<float> waveEffects;
+StructuredBuffer<float3> triangleCenters;
+StructuredBuffer<float> centerDepths;
+
+float3 textureCenterPoint; // world position of the center of the texture
+float worldTextureDimension;
+
+// this functions searches the 8 neighbours of the coordinates and returns the first one
+// it finds that is a part of the silhouette
+float2 findClosestSilhouettePixel(float2 coordinates) {
+	if (waveEffectsTexture[coordinates].r >= 10e-5) {
+		return coordinates;
+	}
+
+	//check direct neighbours
+	if (waveEffectsTexture[float2(coordinates.x + 1, coordinates.y)].r >= 10e-5) {
+		return float2(coordinates.x + 1, coordinates.y);
+	}
+	if (waveEffectsTexture[float2(coordinates.x - 1, coordinates.y)].r >= 10e-5) {
+		return float2(coordinates.x - 1, coordinates.y);
+	}
+	if (waveEffectsTexture[float2(coordinates.x, coordinates.y + 1)].r >= 10e-5) {
+		return float2(coordinates.x, coordinates.y + 1);
+	}
+	if (waveEffectsTexture[float2(coordinates.x, coordinates.y - 1)].r >= 10e-5) {
+		return float2(coordinates.x, coordinates.y - 1);
+	}
+
+	//check diagonal neighbours
+	if (waveEffectsTexture[float2(coordinates.x + 1, coordinates.y + 1)].r >= 10e-5) {
+		return float2(coordinates.x + 1, coordinates.y + 1);
+	}
+	if (waveEffectsTexture[float2(coordinates.x + 1, coordinates.y - 1)].r >= 10e-5) {
+		return float2(coordinates.x + 1, coordinates.y - 1);
+	}
+	if (waveEffectsTexture[float2(coordinates.x - 1, coordinates.y + 1)].r >= 10e-5) {
+		return float2(coordinates.x - 1, coordinates.y + 1);
+	}
+	if (waveEffectsTexture[float2(coordinates.x - 1, coordinates.y - 1)].r >= 10e-5) {
+		return float2(coordinates.x - 1, coordinates.y - 1);
+	}
+
+	return coordinates;
+}
+
+[numthreads(1, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+	uint index = id.x;
+
+	uint count;
+	uint stride;
+
+	triangleCenters.GetDimensions(count, stride);
+	if (index >= count) {
+		return;
+	}
+
+	uint width;
+	uint height;
+
+	waveEffectsTexture.GetDimensions(width, height);
+
+	float2 bottomLeft = textureCenterPoint.xz - worldTextureDimension / 2.0;
+	float2 transformedPosition = (triangleCenters[index].xz - bottomLeft) / worldTextureDimension;
+	float2 transformedCoordinates = findClosestSilhouettePixel(transformedPosition * width);
+
+	float4 original = waveEffectsTexture[transformedCoordinates];
+
+	//blue channel means direct wave effect
+	//alpha channel means indirect
+	float effect = waveEffects[index];
+
+	if (original.g > 0.5) {
+		float centerDepth = centerDepths[index];
+
+		//if the depth of this triangle is greater than the written depth, then this triangle
+		//is not the top triangle and the effect is indirect,
+		//added bias 0.05 for the depth test so that the face is distinguished from itself
+		if (centerDepth > original.r + 0.05) {
+			waveEffectsTexture[transformedCoordinates] += float4(0, 0, 0, effect);
+		}
+		//otherwise the effect is direct
+		else {
+			waveEffectsTexture[transformedCoordinates] += float4(0, 0, effect, 0);
+		}
+	}
+	else {
+		waveEffectsTexture[transformedCoordinates] += float4(0, 0, 0, effect);
+	}
+}
+

@@ -1,0 +1,41 @@
+﻿#pragma kernel CSMain
+
+RWTexture2D<float4> displacement;
+Texture2D<float4> pingpong0;
+Texture2D<float4> pingpong1;
+
+int pingpong;
+int N;
+int output_channel;
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	float2 x = id.xy;
+	float perms[] = { 1.0, -1.0 };
+	int index = int(fmod(int(id.x + id.y), 2));
+	float perm = perms[index];
+
+	float h = 0;
+	if (pingpong == 0) {
+		h = pingpong0[x].r;
+	}
+	else if (pingpong == 1) {
+		h = pingpong1[x].r;	
+	}
+
+	h = perm * h / (N*N);
+
+	float3 originalValue = displacement[x];
+	if (output_channel == 0) {
+		originalValue.r = h;
+	}
+	else if (output_channel == 1) {
+		originalValue.g = h;
+	}
+	else if (output_channel == 2) {
+		originalValue.b = h;
+	}
+	
+	displacement[x] = float4(originalValue, 1);
+}

@@ -1,0 +1,92 @@
+﻿#pragma kernel CSMain
+#define M_PI 3.1415926535897932384626433832795
+
+RWTexture2D<float4> particleDots;
+RWTexture2D<float4> heightfield;
+RWTexture2D<float4> gradientMap;
+
+int textureDimension;
+float textureWorldSize;
+float particleRadius;
+float2 textureCenterWorldPos;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	if (id.x == 0 || id.y == 0 || id.x == textureDimension - 1 || id.y == textureDimension - 1) {
+		heightfield[id.xy] = float4(0, 0, 0, 0);
+		gradientMap[id.xy] = float4(0, 0, 0, 0);
+		return;
+	}
+
+	float pixelWorldSize = textureWorldSize / textureDimension;
+
+	float2 particlePos = textureCenterWorldPos + pixelWorldSize * (id.xy - (float)textureDimension / 2);
+
+	float4 deviation = float4(0, 0, 0, 0);
+	float4 gradient = float4(0, 0, 0, 0);
+	int pixelRadius = particleRadius / pixelWorldSize;
+	for (int i = -pixelRadius; i <= pixelRadius; i++) {
+		for (int j = -pixelRadius; j <= pixelRadius; j++) {
+			float amplitude = particleDots[uint2(id.x + i, id.y + j)].r;
+			if (abs(amplitude) < 10e-8) {
+				continue;
+			}
+			
+			float2 neighbourPos = particlePos;
+			neighbourPos.x += i * pixelWorldSize;
+			neighbourPos.y += j * pixelWorldSize;
+
+			float2 p = neighbourPos - particlePos;
+			float absP = length(neighbourPos - particlePos);
+			if (absP < particleRadius) {
+				float s, c;
+				sincos(M_PI * absP / particleRadius, s, c);
+
+				deviation.y += 0.5 * amplitude * (c + 1);
+
+				if (absP > 10e-4) {
+					float2 horizontalDeviation = amplitude * (-0.5) * sqrt(2) * s * (c + 1) * normalize(p);
+
+					deviation.x -= horizontalDeviation.x;
+					deviation.z -= horizontalDeviation.y;
+
+					//minus because the expression is gradient
+					gradient.x -= -amplitude * (M_PI * p.x * s) / (2 * particleRadius * absP);
+					gradient.z -= -amplitude * (M_PI * p.y * s) / (2 * particleRadius * absP);
+
+					//TODO: 0.2 is the boat choppiness in water material
+					float horizontalGradientX = -0.2 * amplitude * sqrt(2) / (particleRadius * pow(absP, 1.5)) * c * c * (particleRadius * p.y * p.y * s + 2 * M_PI * p.x * p.x * absP * c - M_PI * p.x * p.x * absP);
+					float horizontalGradientY = -0.2 * amplitude * sqrt(2) / (particleRadius * pow(absP, 1.5)) * c * c * (particleRadius * p.x * p.x * s + 2 * M_PI * p.y * p.y * absP * c - M_PI * p.y * p.y * absP);
+
+					gradient.y -= horizontalGradientX;
+					gradient.w -= horizontalGradientY;
+				}
+			}
+		}
+	}
+	heightfield[id.xy] = deviation;
+
+	if (length(gradient.xz) > 10e-5) {
+		float x;
+		if (abs(gradient.y + 1) > 0.8) {
+			x = gradient.x / (1 + gradient.y);
+		}
+		else {
+			x = gradient.x;
+		}
+
+		float z;
+		if (abs(gradient.w + 1) > 0.8) {
+			z = gradient.z / (1 + gradient.w);
+		}
+		else {
+			z = gradient.z;
+		}
+		gradientMap[id.xy] = float4(x, 0, z, 0);
+	}
+	else {
+		gradientMap[id.xy] = float4(0, 0, 0, 0);
+	}
+	
+}

@@ -1,0 +1,74 @@
+﻿#pragma kernel CSMain
+#pragma kernel Downscale
+
+struct WaveParticle {
+	int index;
+	float birthTime;
+	float2 origin;
+	float2 birthPosition;
+	float radius;
+	float speed;
+	float amplitude;
+	float dispersionAngle;
+	int active;
+};
+
+RWTexture2D<float4> downscaled;
+RWTexture2D<float4> particleDots;
+StructuredBuffer<WaveParticle> particles;
+float textureWorldSize;
+float currentTime;
+float2 worldTextureCenterPoint;
+
+int ratio;
+
+float2 getParticlePosition(WaveParticle particle) {
+	float2 direction = normalize(particle.birthPosition - particle.origin);
+	return particle.birthPosition + particle.speed * direction * (currentTime - particle.birthTime);
+}
+
+[numthreads(8,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	if (particles[id.x].active == 1) {
+		// should be width == height
+		uint width;
+		uint height;
+
+		particleDots.GetDimensions(width, height);
+
+		float2 particleWorldPos = getParticlePosition(particles[id.x]);
+		float2 transformedCoords = width * (particleWorldPos - worldTextureCenterPoint + textureWorldSize * 0.5) / textureWorldSize;
+
+		if (transformedCoords.x >= 0 && transformedCoords.y >= 0 && transformedCoords.x < width && transformedCoords.y < height) {
+			float2 floored = floor(transformedCoords);
+			float2 ceiled = ceil(transformedCoords);
+
+			float2 v1 = transformedCoords - floored;
+			float2 v2 = ceiled - transformedCoords;
+
+			float amplitude = particles[id.x].amplitude;
+			float total = length(v1) + length(float2(v1.x, v2.y)) + length(float2(v2.x, v1.y)) + length(v2);
+
+			particleDots[transformedCoords] += float4(amplitude, 0, 0, 0);
+			//particleDots[transformedCoords] += float4(amplitude, particleWorldPos, 1);
+			/*particleDots[int2(floored.x, floored.y)] += float4(amplitude * length(v1) / total, 0, 0, 1);
+			particleDots[int2(floored.x, ceiled.y)] += float4(amplitude * length(float2(v1.x, v2.y)) / total, 0, 0, 1);
+			particleDots[int2(ceiled.x, floored.y)] += float4(amplitude * length(float2(v2.x, v1.y)) / total, 0, 0, 1);
+			particleDots[int2(ceiled.x, ceiled.y)] += float4(amplitude * length(v2) / total, 0, 0, 1);*/
+		}
+	}
+}
+
+[numthreads(8, 8, 1)]
+void Downscale(uint3 id : SV_DispatchThreadID) {
+	float4 newC = float4(0, 0, 0, 1);
+	
+	for (int i = 0; i < ratio; i++) {
+		for (int j = 0; j < ratio; j++) {
+			newC += particleDots[int2(ratio * id.x + i, ratio * id.y + j)];
+		}
+	}
+
+	downscaled[id.xy] = newC;
+}
