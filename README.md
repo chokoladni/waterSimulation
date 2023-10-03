@@ -1,5 +1,3 @@
-# waterSimulation
-Water and boat physics simulation.
 # Water & Boat Physics Simulation
 A simulation of ambient ocean waves based on IFFT of the Phillips spectrum, accompanied by boat physics simulation and interaction waves caused by the water-boat interaction.
 
