@@ -39,3 +39,22 @@ $$\vec{F_{slam} = clamp\left(\frac{\Gamma_i(t)}{\Gamma_{max}}, 0, 1\right)^p cos
 $\Gamma_{max}$ and $p$ are user-defined parameters - $\Gamma_{max}$ represents the acceleration at which the whole stopping force $\vec{F_{stop}}$ will be applied, while $p$ is used to achieve non-linearity. The stopping force is defined as
 $$\vec{F_{stop}} = m \frac{v_i}{dt} \frac{2 A_i^S(t)}{S_b}$$
 where $m$ is the vessel mass and $S_b$ is the total vessel area.
+
+# Interaction waves
+Interaction waves are the result of water-boat interaction and are simulated using the wave particles method.
+## Wave particle
+A wave particle represents local water surface deformation at its position. Wave particles move only in the horizontal plane and are mutually independent, meaning there's no interaction between them. Every wave particle consists of an origin point, birth point, time of birth, amplitude, orientation, radius and velocity. The shape of the local deformation is declared as $D_i(\vec{x}, t)$, where $\vec{x} = (x, y)$ is the position vector, and the global deformation can then be defined as a superposition of all wave particles' local deformations:
+$$\delta_z = \sum_{i} D_i(\vec{x}, t).$$
+The local deformation function is defined as
+$$D_i(\vec{x}, t) = a_i W(\vec{x} - \vec{x_i}(t))$$
+where $a_i$ is the particle amplitude, $\vec{x_i}(t)$ its position at time $t$ and $W$ a constant function which defines the shape of all wave particles:
+$$W(\vec{x}) = \frac{1}{2} \left(cos\left(\frac{\pi |\vec{x}|}{r}\right) + 1\right)\Pi\left(\frac{|\vec{x}|}{2r}\right)$$
+where $r$ is the particle radius.
+The following image shows the shape of a single wave particle:
+![image](https://github.com/chokoladni/waterSimulation/assets/19283862/69ee6596-d00d-4243-8fc7-63a521db8e73)
+
+However, real waves are shaped a bit differently - they aren't as smooth as the sinusoidal representation above, but rather have pointy tips. To model this, beside the vertical deformation, a horizontal deformation is introduced as well:
+$$\vec{H_i}(\vec{x}, t) = - \frac{a_i \sqrt{2}}{2} sin \left( \frac{\pi |\vec{p}|}{r}\right) \left( cos \left(\frac{\pi |\vec{p}|}{r} \right) +1 \right) \Pi \left( \frac{|\vec{p}|}{2r} \right)\hat{p}$$
+where $\vec{p} = \vec{x} - \vec{x_i}(t)$ is shorthand for the vector between particle's position and the given position at which the deformation is being evaluated. The final shape of the deformation, with both the vertical and horizontal components, is depicted below.
+![image](https://github.com/chokoladni/waterSimulation/assets/19283862/664541dd-dc2b-48cc-a4ac-92d2cdc18344)
+
