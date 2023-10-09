@@ -1,6 +1,10 @@
 # Water & Boat Physics Simulation
 A simulation of ambient ocean waves based on IFFT of the Phillips spectrum, accompanied by boat physics simulation and interaction waves caused by the water-boat interaction.
 
+(click the image for video)
+
+[![Watch the video](https://img.youtube.com/vi/sqFBgu65H9s/hqdefault.jpg)](https://www.youtube.com/embed/sqFBgu65H9s)
+
 ## Ambient waves
 Ambient waves are simulated by performing inverse fast fourier transform (IFFT) on the Phillips spectrum, an empirically-obtained statistical model which characterizes waves caused by wind on the open ocean.
 ![image](https://github.com/chokoladni/waterSimulation/assets/19283862/6c7effd1-ce76-4f6a-9880-c4201d54ebc5)
