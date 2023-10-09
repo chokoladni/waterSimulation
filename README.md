@@ -98,3 +98,18 @@ After the distribution has been completed, the direct wave effects from the orig
 
 ### Wave particle generation
 The texture from the previous step is read pixel by pixel on the CPU and for each pixel that contains a wave effect (either direct, indirect, or both), a wave particle is generated. If the wave effect is direct, the generated particle won't have a defined propagation direction and its dispersion angle $\phi$ will be $2\pi$, meaning it will disperse in every direction and form a circular wavefront. If the wave effect is indirect, the generated particle will have the propagation direction that is written in the texture and its dispersion angle will be the average angle between its propagation direction and its neighbours' propagation directions. Amplitudes of the generated particles are read from blue and alpha channels.
+
+## Displacement map generation
+Water surface displacement map is generated based on wave particles within a certain distance from the boat. First step is to draw each particle to a texture using a compute shader, where the red channel is used to store the particle's amplitude. The texture is square and its center always corresponds to the current position of the boat in the world, so the wave particles are drawn relatively to its position. For illustration purposes, the image below shows the texture with red channel being used to show negative amplitudes, while the green channel is for positive amplitudes. The amplitudes have also been increased significantly, since the real amplitude values aren't sufficient to be visible. Finally, the image only shows a part of the texture where there are any wave particles - the real texture is bigger, but the rest of it is black since no wave particles are generated elsewhere.
+
+![image](https://github.com/chokoladni/waterSimulation/assets/19283862/c497d774-9690-4b49-a451-38ff9fe7d1ca)
+
+The second step is to process the texture from the first step using three convolution filters, which represent local deformation of a wave particle - the first convolution filter corresponds to the [vertical deformation](https://github.com/chokoladni/waterSimulation#vertical-deformation) and the other two filters correspond to the [horizontal deformation](https://github.com/chokoladni/waterSimulation#horizontal-deformation) (one for each dimension). Filters have square dimensions and their width/height corresponds to the radius of the wave particle.
+
+![image](https://github.com/chokoladni/waterSimulation/assets/19283862/7598927d-7690-4ee3-befa-2d9dce7baa93)
+
+The image above shows the result after filtering - red channel is used to store displacement on the $x$ axis, green channel for displacement on the $y$ axis and blue channel for displacement on the $z$ axis (only positive deformation is visible on the image).
+
+The displacement map is then added to the displacement map of the ambient waves to obtain the final result:
+
+![image](https://github.com/chokoladni/waterSimulation/assets/19283862/bc5dc561-affd-44e4-9045-356e20ccee3f)
