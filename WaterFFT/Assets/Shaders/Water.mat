@@ -302,7 +302,7 @@ Material:
     - Vector2_B0731CCA: {r: 0, g: 0, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
-    - _BoatHeightfieldCenterPos: {r: 30.719854, g: -84.17476, b: 0, a: 0}
+    - _BoatHeightfieldCenterPos: {r: -9.581808, g: -21.073137, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}

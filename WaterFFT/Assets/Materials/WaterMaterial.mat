@@ -26,6 +26,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - Texture2D_C70FDDF5:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _AnisotropyMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -42,11 +46,27 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BoatGradient:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BoatHeightfield:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _CoatMaskMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _CubemapAsset_4746549F_Out_0:
+        m_Texture: {fileID: 8900000, guid: e27ad79440bd81443a85b5d0035e50d6, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DetailMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DisplacementMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -115,6 +135,21 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Vector1_16E44B3B: 0
+    - Vector1_3468A52E: 0
+    - Vector1_6EFED906: 1
+    - Vector1_88C2F22: 0
+    - Vector1_8F246D4C: 4
+    - Vector1_9203C064: 1
+    - Vector1_9EF92E5E: 0
+    - Vector1_B2EBE5C: 1
+    - Vector1_B892B443: 0
+    - Vector1_C5EA931F: 0
+    - Vector1_C856EE11: 0
+    - Vector1_D44B6866: 0
+    - Vector1_D6CCA967: 0.1
+    - Vector1_E9762DE9: 0.9
+    - Vector1_F8CBEA62: 0
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
@@ -128,6 +163,9 @@ Material:
     - _AlphaSrcBlend: 1
     - _Anisotropy: 0
     - _BlendMode: 0
+    - _BoatHeightfieldDimension: 0
+    - _BoatHeightfieldIntensity: 0
+    - _BoatHeightfieldWorldSize: 0
     - _CoatMask: 0
     - _CullMode: 2
     - _CullModeForward: 2
@@ -236,8 +274,10 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 1
     m_Colors:
+    - Color_7347B654: {r: 0, g: 0.45376074, b: 0.9056604, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
+    - _BoatHeightfieldCenterPos: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DiffusionProfileAsset: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
