@@ -115,3 +115,14 @@ The image above shows the result after filtering - red channel is used to store 
 The displacement map is then added to the displacement map of the ambient waves to obtain the final result:
 
 ![image](https://github.com/chokoladni/waterSimulation/assets/19283862/bc5dc561-affd-44e4-9045-356e20ccee3f)
+
+# Sources
+[1] Tessendorf, J., Simulating Ocean Water, (2001)
+
+[2] Flügge, F. J., Realtime GPGPU FFT Ocean Water Simulation, (2017)
+
+[3] Kerner, J., Water Interaction Model for Boats in Video Games, (2015)
+
+[4] Batchelor, G. K., An Introduction to Fluid Dynamics, Cambridge University Press (1967)
+
+[5] Yuksel, C., Real-Time Water Waves With Wave Particles, (2010)
